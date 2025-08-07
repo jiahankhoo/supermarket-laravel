@@ -27,7 +27,10 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            $table->dropForeign(['responded_by']);
+            // SQLite 不支持 dropForeign，所以我们需要检查数据库类型
+            if (config('database.default') !== 'sqlite') {
+                $table->dropForeign(['responded_by']);
+            }
             $table->dropColumn([
                 'cancellation_reason',
                 'cancellation_requested_at',

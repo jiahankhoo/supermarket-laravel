@@ -6,6 +6,33 @@
     <title>管理员仪表板 - Laravel 超市系统</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .quick-action-btn {
+            transition: all 0.3s ease;
+            border-radius: 10px;
+            min-height: 120px;
+        }
+        .quick-action-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .quick-action-btn i {
+            transition: all 0.3s ease;
+        }
+        .quick-action-btn:hover i {
+            transform: scale(1.1);
+        }
+        .card-header.bg-primary {
+            background: linear-gradient(135deg, #007bff, #0056b3) !important;
+        }
+        .stats-card {
+            transition: all 0.3s ease;
+        }
+        .stats-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+    </style>
 </head>
 <body class="bg-light">
     <!-- 导航栏 -->
@@ -27,21 +54,6 @@
                     <li class="nav-item">
                         <a class="nav-link active" href="{{ route('admin.dashboard') }}">
                             <i class="fas fa-tachometer-alt"></i> 仪表板
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('admin.products.index') }}">
-                            <i class="fas fa-box"></i> 商品管理
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('admin.users.index') }}">
-                            <i class="fas fa-users"></i> 用户管理
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('admin.categories.index') }}">
-                            <i class="fas fa-tags"></i> 分类管理
                         </a>
                     </li>
                 </ul>
@@ -82,7 +94,7 @@
         <!-- 统计卡片 -->
         <div class="row mb-4">
             <div class="col-md-3 mb-3">
-                <div class="card bg-primary text-white">
+                <div class="card bg-primary text-white stats-card">
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
                             <div>
@@ -97,7 +109,7 @@
                 </div>
             </div>
             <div class="col-md-3 mb-3">
-                <div class="card bg-success text-white">
+                <div class="card bg-success text-white stats-card">
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
                             <div>
@@ -112,7 +124,7 @@
                 </div>
             </div>
             <div class="col-md-3 mb-3">
-                <div class="card bg-warning text-white">
+                <div class="card bg-warning text-white stats-card">
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
                             <div>
@@ -127,7 +139,7 @@
                 </div>
             </div>
             <div class="col-md-3 mb-3">
-                <div class="card bg-info text-white">
+                <div class="card bg-info text-white stats-card">
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
                             <div>
@@ -147,44 +159,78 @@
         <div class="row mb-4">
             <div class="col">
                 <div class="card">
-                    <div class="card-header">
-                        <h5><i class="fas fa-bolt"></i> 快速操作</h5>
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-bolt"></i> 快速操作</h5>
                     </div>
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-md-3 mb-2">
-                                <a href="{{ route('admin.products.create') }}" class="btn btn-primary w-100">
-                                    <i class="fas fa-plus"></i> 添加商品
+                            <!-- 商品管理 -->
+                            <div class="col-md-2 col-sm-4 col-6 mb-3">
+                                <a href="{{ route('admin.products.create') }}" class="btn btn-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center quick-action-btn">
+                                    <i class="fas fa-plus-circle fa-2x mb-2"></i>
+                                    <span>添加商品</span>
                                 </a>
                             </div>
-                            <div class="col-md-3 mb-2">
-                                <a href="{{ route('admin.products.index') }}" class="btn btn-success w-100">
-                                    <i class="fas fa-list"></i> 管理商品
+                            <div class="col-md-2 col-sm-4 col-6 mb-3">
+                                <a href="{{ route('admin.products.index') }}" class="btn btn-success w-100 h-100 d-flex flex-column align-items-center justify-content-center quick-action-btn">
+                                    <i class="fas fa-box fa-2x mb-2"></i>
+                                    <span>商品管理</span>
                                 </a>
                             </div>
-                            <div class="col-md-3 mb-2">
-                                <a href="{{ route('orders.index') }}" class="btn btn-warning w-100">
-                                    <i class="fas fa-shopping-bag"></i> 查看订单
+                            
+                            <!-- 用户管理 -->
+                            <div class="col-md-2 col-sm-4 col-6 mb-3">
+                                <a href="{{ route('admin.users.index') }}" class="btn btn-info w-100 h-100 d-flex flex-column align-items-center justify-content-center quick-action-btn">
+                                    <i class="fas fa-users fa-2x mb-2"></i>
+                                    <span>用户管理</span>
                                 </a>
                             </div>
-                            <div class="col-md-3 mb-2">
-                                <a href="{{ route('admin.users.index') }}" class="btn btn-info w-100">
-                                    <i class="fas fa-users"></i> 用户管理
+                            
+                            <!-- 订单管理 -->
+                            <div class="col-md-2 col-sm-4 col-6 mb-3">
+                                <a href="{{ route('orders.index') }}" class="btn btn-warning w-100 h-100 d-flex flex-column align-items-center justify-content-center quick-action-btn">
+                                    <i class="fas fa-shopping-bag fa-2x mb-2"></i>
+                                    <span>我的订单</span>
                                 </a>
                             </div>
-                            <div class="col-md-3 mb-2">
-                                <a href="{{ route('admin.categories.index') }}" class="btn btn-dark w-100">
-                                    <i class="fas fa-tags"></i> 分类管理
+                            
+                            <!-- 分类管理 -->
+                            <div class="col-md-2 col-sm-4 col-6 mb-3">
+                                <a href="{{ route('admin.categories.index') }}" class="btn btn-dark w-100 h-100 d-flex flex-column align-items-center justify-content-center quick-action-btn">
+                                    <i class="fas fa-tags fa-2x mb-2"></i>
+                                    <span>分类管理</span>
                                 </a>
                             </div>
-                            <div class="col-md-3 mb-2">
-                                <a href="{{ route('chat.index') }}" class="btn btn-warning w-100">
-                                    <i class="fas fa-comments"></i> 客户聊天
+                            
+                            <!-- 客户聊天 -->
+                            <div class="col-md-2 col-sm-4 col-6 mb-3">
+                                <a href="{{ route('chat.index') }}" class="btn btn-danger w-100 h-100 d-flex flex-column align-items-center justify-content-center quick-action-btn">
+                                    <i class="fas fa-comments fa-2x mb-2"></i>
+                                    <span>客户聊天</span>
                                 </a>
                             </div>
-                            <div class="col-md-3 mb-2">
-                                <a href="{{ route('home') }}" class="btn btn-secondary w-100">
-                                    <i class="fas fa-store"></i> 查看商店
+                            
+                            <!-- 联系消息 -->
+                            <div class="col-md-2 col-sm-4 col-6 mb-3">
+                                <a href="{{ route('admin.contact-messages') }}" class="btn btn-secondary w-100 h-100 d-flex flex-column align-items-center justify-content-center quick-action-btn">
+                                    <i class="fas fa-envelope fa-2x mb-2"></i>
+                                    <span>联系消息</span>
+                                </a>
+                            </div>
+                            
+                            <!-- 查看商店 -->
+                            <div class="col-md-2 col-sm-4 col-6 mb-3">
+                                <a href="{{ route('home') }}" class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center quick-action-btn">
+                                    <i class="fas fa-store fa-2x mb-2"></i>
+                                    <span>查看商店</span>
+                                </a>
+                            </div>
+                            
+                            <!-- 系统设置 -->
+                            <div class="col-md-2 col-sm-4 col-6 mb-3">
+                                <a href="#" class="btn btn-outline-secondary w-100 h-100 d-flex flex-column align-items-center justify-content-center quick-action-btn">
+                                    <i class="fas fa-cog fa-2x mb-2"></i>
+                                    <span>系统设置</span>
                                 </a>
                             </div>
                         </div>
