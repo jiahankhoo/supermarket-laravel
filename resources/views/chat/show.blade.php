@@ -556,7 +556,7 @@ chatForm.addEventListener('submit', function(e) {
     }
     
     // 发送消息到服务器
-    fetch(`/chat/send/${otherUserId}`, {
+    fetch(`/supermarket-laravel/public/chat/send/${otherUserId}`, {
         method: 'POST',
         headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')

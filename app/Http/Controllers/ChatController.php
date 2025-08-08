@@ -66,6 +66,7 @@ class ChatController extends Controller
     {
         try {
             // 记录请求信息用于调试
+            
             \Log::info('Chat send request', [
                 'user_id' => $userId,
                 'has_message' => $request->has('message'),
