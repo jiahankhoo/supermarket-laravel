@@ -19,21 +19,3 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
-
-# 大文件上传配置
-<IfModule mod_php.c>
-    php_value upload_max_filesize 500M
-    php_value post_max_size 500M
-    php_value max_execution_time 300
-    php_value memory_limit 512M
-    php_value max_input_time 300
-</IfModule>
-
-# 如果使用PHP-FPM
-<IfModule mod_fastcgi.c>
-    php_value upload_max_filesize 500M
-    php_value post_max_size 500M
-    php_value max_execution_time 300
-    php_value memory_limit 512M
-    php_value max_input_time 300
-</IfModule>
