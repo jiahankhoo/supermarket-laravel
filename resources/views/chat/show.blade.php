@@ -664,7 +664,7 @@ messageInput.addEventListener('keydown', function(e) {
 
 // 定期检查新消息
 function checkNewMessages() {
-    fetch(`/chat/messages/${otherUserId}`)
+    fetch(`/supermarket-laravel/public/chat/messages/${otherUserId}`)
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
