@@ -665,7 +665,12 @@ messageInput.addEventListener('keydown', function(e) {
 // 定期检查新消息
 function checkNewMessages() {
     fetch(`/chat/messages/${otherUserId}`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(messages => {
             const currentMessageCount = chatMessages.querySelectorAll('.message').length;
             if (messages.length > currentMessageCount) {
@@ -675,6 +680,16 @@ function checkNewMessages() {
         })
         .catch(error => {
             console.error('Error checking messages:', error);
+            // 如果连续失败多次，停止检查
+            if (window.messageCheckFailures === undefined) {
+                window.messageCheckFailures = 0;
+            }
+            window.messageCheckFailures++;
+            
+            if (window.messageCheckFailures > 5) {
+                console.log('停止检查新消息，因为连续失败次数过多');
+                clearInterval(window.messageCheckInterval);
+            }
         });
 }
 
@@ -738,7 +753,7 @@ function openFileModal(fileUrl, fileName) {
 }
 
 // 每5秒检查一次新消息
-setInterval(checkNewMessages, 5000);
+window.messageCheckInterval = setInterval(checkNewMessages, 5000);
 </script>
 @endpush
 @endsection 
