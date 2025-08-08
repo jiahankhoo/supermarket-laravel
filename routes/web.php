@@ -173,6 +173,7 @@ Route::get('/storage/{path}', function($path) {
     // 管理员路由
     Route::middleware('admin')->group(function () {
         Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+
         Route::get('/admin/products', [AdminController::class, 'products'])->name('admin.products.index');
         
         // 商品管理

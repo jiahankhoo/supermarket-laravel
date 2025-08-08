@@ -4,26 +4,109 @@
 
 @section('content')
 <div class="container-fluid py-4">
+    <!-- 页面标题和欢迎信息 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-comments fa-2x text-primary me-3"></i>
+                <div>
+                    <h2 class="mb-0">聊天对话</h2>
+                    <p class="text-muted mb-0">与 {{ $otherUser->name }} 的实时对话</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 聊天统计卡片 -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ $messages->count() }}</h4>
+                            <p class="mb-0">总消息数</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-comment fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ $messages->where('sender_id', Auth::id())->count() }}</h4>
+                            <p class="mb-0">我发送的</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-paper-plane fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ $messages->where('sender_id', $otherUser->id)->count() }}</h4>
+                            <p class="mb-0">对方发送的</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-user fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ $messages->where('file_path', '!=', null)->count() }}</h4>
+                            <p class="mb-0">文件消息</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-file fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 聊天主界面 -->
     <div class="row">
-        <div class="col-md-8 mx-auto">
-            <div class="card">
-                <div class="card-header">
+        <div class="col-md-9">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="d-flex align-items-center">
-                            <i class="fas fa-user-circle fa-2x text-primary me-3"></i>
+                            <div class="avatar-circle me-3">
+                                <i class="fas fa-user"></i>
+                            </div>
                             <div>
                                 <h5 class="mb-0">{{ $otherUser->name }}</h5>
                                 <small class="text-muted">
                                     @if($otherUser->role === 'admin')
-                                        在线客服
+                                        <i class="fas fa-shield-alt text-primary"></i> 在线客服
                                     @else
-                                        客户
+                                        <i class="fas fa-user text-success"></i> 客户
                                     @endif
+                                    <span class="ms-2">
+                                        <i class="fas fa-circle text-success"></i> 在线
+                                    </span>
                                 </small>
                             </div>
                         </div>
                         <div>
-                            <a href="{{ route('chat.index') }}" class="btn btn-outline-secondary btn-sm">
+                            <a href="{{ route('chat.index') }}" class="btn btn-outline-secondary">
                                 <i class="fas fa-arrow-left"></i> 返回列表
                             </a>
                         </div>
@@ -32,7 +115,7 @@
                 
                 <div class="card-body p-0">
                     <!-- 聊天消息区域 -->
-                    <div id="chat-messages" class="chat-container" style="height: 400px; overflow-y: auto; padding: 20px;">
+                    <div id="chat-messages" class="chat-container" style="height: 500px; overflow-y: auto; padding: 20px; background: #f8f9fa;">
                         @foreach($messages as $message)
                             <div class="message {{ $message->sender_id == Auth::id() ? 'message-sent' : 'message-received' }}">
                                 <div class="message-content">
@@ -42,29 +125,29 @@
                                     
                                     @if($message->file_path)
                                         <div class="message-file">
-                                                                                         @if($message->file_type === 'image')
-                                                 <img src="/storage/{{ $message->file_path }}" 
-                                                      alt="{{ $message->file_name }}" 
-                                                      class="img-fluid rounded" 
-                                                      style="max-width: 200px; max-height: 200px; cursor: pointer;"
-                                                      onclick="openFileModal('/storage/{{ $message->file_path }}', '{{ $message->file_name }}')">
-                                             @elseif($message->file_type === 'video')
-                                                 <video controls style="max-width: 200px; max-height: 200px;" class="rounded">
-                                                     <source src="/storage/{{ $message->file_path }}" type="video/mp4">
-                                                     您的浏览器不支持视频播放。
-                                                 </video>
-                                             @else
-                                                 <div class="file-attachment">
-                                                     <i class="fas fa-file"></i>
-                                                     <span>{{ $message->file_name }}</span>
-                                                     <small class="text-muted">({{ $message->file_size }})</small>
-                                                     <a href="/storage/{{ $message->file_path }}" 
-                                                        target="_blank" 
-                                                        class="btn btn-sm btn-outline-primary">
-                                                         <i class="fas fa-download"></i> 下载
-                                                     </a>
-                                                 </div>
-                                             @endif
+                                            @if($message->file_type === 'image')
+                                                <img src="/storage/{{ $message->file_path }}" 
+                                                     alt="{{ $message->file_name }}" 
+                                                     class="img-fluid rounded shadow-sm" 
+                                                     style="max-width: 250px; max-height: 250px; cursor: pointer;"
+                                                     onclick="openFileModal('/storage/{{ $message->file_path }}', '{{ $message->file_name }}')">
+                                            @elseif($message->file_type === 'video')
+                                                <video controls class="rounded shadow-sm" style="max-width: 250px; max-height: 250px;">
+                                                    <source src="/storage/{{ $message->file_path }}" type="video/mp4">
+                                                    您的浏览器不支持视频播放。
+                                                </video>
+                                            @else
+                                                <div class="file-attachment">
+                                                    <i class="fas fa-file"></i>
+                                                    <span>{{ $message->file_name }}</span>
+                                                    <small class="text-muted">({{ $message->file_size }})</small>
+                                                    <a href="/storage/{{ $message->file_path }}" 
+                                                       target="_blank" 
+                                                       class="btn btn-sm btn-outline-primary">
+                                                        <i class="fas fa-download"></i> 下载
+                                                    </a>
+                                                </div>
+                                            @endif
                                         </div>
                                     @endif
                                     
@@ -86,13 +169,13 @@
                     </div>
                     
                     <!-- 输入区域 -->
-                    <div class="chat-input-container p-3 border-top">
+                    <div class="chat-input-container p-4 border-top bg-white">
                         <form id="chat-form" class="d-flex">
-                            <div class="flex-grow-1 me-2">
+                            <div class="flex-grow-1 me-3">
                                 <input 
                                     type="text" 
                                     id="message-input" 
-                                    class="form-control" 
+                                    class="form-control form-control-lg" 
                                     placeholder="输入消息..." 
                                     maxlength="1000"
                                 >
@@ -103,27 +186,95 @@
                                     accept="image/*,video/*,.pdf,.doc,.docx,.txt"
                                 >
                             </div>
-                            <button type="button" class="btn btn-outline-secondary me-2" onclick="document.getElementById('file-input').click()">
+                            <button type="button" class="btn btn-outline-secondary btn-lg me-2" onclick="document.getElementById('file-input').click()">
                                 <i class="fas fa-paperclip"></i>
                             </button>
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-primary btn-lg">
                                 <i class="fas fa-paper-plane"></i>
                             </button>
                         </form>
-                                                 <div class="mt-2">
-                             <small class="text-muted">
-                                 <i class="fas fa-info-circle"></i>
-                                 按 Enter 发送消息，Shift + Enter 换行，支持图片、视频和文档（最大500MB）
-                             </small>
-                         </div>
-                        <div id="file-preview" class="mt-2 d-none">
+                        
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle"></i>
+                                按 Enter 发送消息，Shift + Enter 换行，支持图片、视频和文档（最大500MB）
+                            </small>
+                        </div>
+                        
+                        <!-- 文件预览区域 -->
+                        <div id="file-preview" class="mt-3" style="display: none;">
                             <div class="alert alert-info">
-                                <i class="fas fa-file"></i>
-                                <span id="file-name"></span>
-                                <button type="button" class="btn btn-sm btn-outline-danger ms-2" onclick="removeFile()">
-                                    <i class="fas fa-times"></i>
-                                </button>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <i class="fas fa-file"></i>
+                                        <span id="file-name"></span>
+                                        <small class="text-muted" id="file-size"></small>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeFile()">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 侧边栏 -->
+        <div class="col-md-3">
+            <!-- 快速操作 -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-bolt text-warning"></i> 快速操作
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary btn-sm" onclick="sendQuickMessage('您好，有什么可以帮助您的吗？')">
+                            <i class="fas fa-handshake"></i> 问候语
+                        </button>
+                        <button class="btn btn-outline-success btn-sm" onclick="sendQuickMessage('感谢您的咨询，我们会尽快处理。')">
+                            <i class="fas fa-thumbs-up"></i> 感谢语
+                        </button>
+                        <button class="btn btn-outline-info btn-sm" onclick="sendQuickMessage('请稍等，我正在为您查询相关信息。')">
+                            <i class="fas fa-clock"></i> 稍等语
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 聊天信息 -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-info-circle text-info"></i> 聊天信息
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <small class="text-muted">开始时间</small>
+                        <div>{{ $messages->first() ? $messages->first()->created_at->format('Y-m-d H:i') : '暂无消息' }}</div>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">最后消息</small>
+                        <div>{{ $messages->last() ? $messages->last()->created_at->format('Y-m-d H:i') : '暂无消息' }}</div>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">消息频率</small>
+                        <div>
+                            @if($messages->count() > 1)
+                                @php
+                                    $firstMessage = $messages->first();
+                                    $lastMessage = $messages->last();
+                                    $duration = $lastMessage->created_at->diffInMinutes($firstMessage->created_at);
+                                    $frequency = $duration > 0 ? round($messages->count() / $duration, 2) : 0;
+                                @endphp
+                                {{ $frequency }} 条/分钟
+                            @else
+                                暂无数据
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -151,13 +302,37 @@
 </div>
 
 <style>
+.avatar-circle {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+}
+
 .chat-container {
-    background-color: #f8f9fa;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
 }
 
 .message {
-    margin-bottom: 15px;
+    margin-bottom: 20px;
     display: flex;
+    animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .message-sent {
@@ -170,80 +345,170 @@
 
 .message-content {
     max-width: 70%;
-    padding: 10px 15px;
-    border-radius: 18px;
+    padding: 15px 20px;
+    border-radius: 20px;
     position: relative;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
 .message-sent .message-content {
-    background-color: #007bff;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    border-bottom-right-radius: 5px;
+    border-bottom-right-radius: 8px;
 }
 
 .message-received .message-content {
-    background-color: white;
-    border: 1px solid #dee2e6;
-    border-bottom-left-radius: 5px;
+    background: white;
+    border: 1px solid #e9ecef;
+    border-bottom-left-radius: 8px;
 }
 
 .message-text {
     word-wrap: break-word;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
+    line-height: 1.5;
 }
 
 .message-time {
     text-align: right;
     font-size: 0.75rem;
+    opacity: 0.8;
 }
 
 .message-sent .message-time {
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.9);
 }
 
 .chat-input-container {
-    background-color: white;
+    background: white;
+    border-top: 1px solid #e9ecef;
 }
 
 #message-input {
-    border-radius: 20px;
-    border: 1px solid #dee2e6;
+    border-radius: 25px;
+    border: 2px solid #e9ecef;
+    padding: 12px 20px;
+    transition: all 0.3s ease;
 }
 
 #message-input:focus {
-    border-color: #007bff;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
 }
 
 .btn-primary {
     border-radius: 50%;
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
     display: flex;
     align-items: center;
     justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
 
 .message-file {
-    margin-top: 10px;
+    margin-top: 12px;
 }
 
 .file-attachment {
-    background-color: rgba(0, 0, 0, 0.05);
-    padding: 10px;
-    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 15px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+    border: 1px solid #e9ecef;
 }
 
 .file-attachment i {
-    font-size: 1.5rem;
-    color: #6c757d;
+    font-size: 1.8rem;
+    color: #667eea;
+}
+
+.card {
+    border: none;
+    border-radius: 15px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.card-header {
+    border-bottom: 1px solid #e9ecef;
+    padding: 1.25rem;
+}
+
+.btn-outline-secondary {
+    border-radius: 25px;
+    padding: 8px 20px;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-secondary:hover {
+    transform: translateX(-2px);
 }
 
 .flex-grow-1 {
     flex-grow: 1;
+}
+
+/* 统计卡片样式 */
+.bg-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+.bg-success {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+}
+
+.bg-info {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+.bg-warning {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important;
+}
+
+/* 快速操作按钮样式 */
+.btn-outline-primary {
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn-outline-success {
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-success:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(17, 153, 142, 0.3);
+}
+
+.btn-outline-info {
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-info:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 </style>
 
@@ -268,6 +533,12 @@ function scrollToBottom() {
 document.addEventListener('DOMContentLoaded', function() {
     scrollToBottom();
 });
+
+// 发送快速消息
+function sendQuickMessage(message) {
+    messageInput.value = message;
+    chatForm.dispatchEvent(new Event('submit'));
+}
 
 // 发送消息
 chatForm.addEventListener('submit', function(e) {
@@ -328,15 +599,15 @@ function addMessage(messageData) {
                 <div class="message-file">
                     <img src="/storage/${messageData.file_path}" 
                          alt="${messageData.file_name}" 
-                         class="img-fluid rounded" 
-                         style="max-width: 200px; max-height: 200px; cursor: pointer;"
+                         class="img-fluid rounded shadow-sm" 
+                         style="max-width: 250px; max-height: 250px; cursor: pointer;"
                          onclick="openFileModal('/storage/${messageData.file_path}', '${messageData.file_name}')">
                 </div>
             `;
         } else if (messageData.file_type === 'video') {
             fileHtml = `
                 <div class="message-file">
-                    <video controls style="max-width: 200px; max-height: 200px;" class="rounded">
+                    <video controls class="rounded shadow-sm" style="max-width: 250px; max-height: 250px;">
                         <source src="/storage/${messageData.file_path}" type="video/mp4">
                         您的浏览器不支持视频播放。
                     </video>
@@ -419,15 +690,29 @@ fileInput.addEventListener('change', function(e) {
         
         selectedFile = file;
         fileName.textContent = file.name;
-        filePreview.classList.remove('d-none');
+        document.getElementById('file-size').textContent = `(${formatFileSize(file.size)})`;
+        filePreview.style.display = 'block';
     }
 });
+
+// 格式化文件大小
+function formatFileSize(bytes) {
+    if (bytes >= 1073741824) {
+        return (bytes / 1073741824).toFixed(2) + ' GB';
+    } else if (bytes >= 1048576) {
+        return (bytes / 1048576).toFixed(2) + ' MB';
+    } else if (bytes >= 1024) {
+        return (bytes / 1024).toFixed(2) + ' KB';
+    } else {
+        return bytes + ' bytes';
+    }
+}
 
 // 移除文件
 function removeFile() {
     selectedFile = null;
     fileInput.value = '';
-    filePreview.classList.add('d-none');
+    filePreview.style.display = 'none';
 }
 
 // 打开文件模态框

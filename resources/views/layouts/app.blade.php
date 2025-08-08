@@ -57,17 +57,7 @@
                         @if(Auth::user()->isAdmin())
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route('admin.dashboard') }}">
-                                    <i class="fas fa-tachometer-alt"></i> 仪表板
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ route('admin.products.index') }}">
-                                    <i class="fas fa-box"></i> 商品管理
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ route('admin.users.index') }}">
-                                    <i class="fas fa-users"></i> 用户管理
+                                    <i class="fas fa-cogs"></i> 操作面板
                                 </a>
                             </li>
                         @else
@@ -76,17 +66,17 @@
                                     <i class="fas fa-shopping-cart"></i> 购物车
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('orders.index') }}">
+                                    <i class="fas fa-shopping-bag"></i> 我的订单
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('chat.index') }}">
+                                    <i class="fas fa-comments"></i> 在线客服
+                                </a>
+                            </li>
                         @endif
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('orders.index') }}">
-                                <i class="fas fa-shopping-bag"></i> 我的订单
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('chat.index') }}">
-                                <i class="fas fa-comments"></i> {{ Auth::user()->isAdmin() ? '客户聊天' : '在线客服' }}
-                            </a>
-                        </li>
                     @endauth
                 </ul>
                 <ul class="navbar-nav">

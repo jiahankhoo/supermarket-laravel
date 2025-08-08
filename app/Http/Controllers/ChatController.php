@@ -64,63 +64,106 @@ class ChatController extends Controller
 
     public function send(Request $request, $userId)
     {
-        $request->validate([
-            'message' => 'nullable|string|max:1000',
-            'file' => 'nullable|file|max:512000', // 最大500MB
-        ]);
-        
-        $currentUser = Auth::user();
-        $otherUser = User::findOrFail($userId);
-        
-        // 检查权限
-        if ($currentUser->isAdmin()) {
-            if ($otherUser->isAdmin()) {
-                return response()->json(['error' => '无法与管理员聊天'], 403);
+        try {
+            // 记录请求信息用于调试
+            \Log::info('Chat send request', [
+                'user_id' => $userId,
+                'has_message' => $request->has('message'),
+                'has_file' => $request->hasFile('file'),
+                'file_size' => $request->hasFile('file') ? $request->file('file')->getSize() : 0,
+                'max_upload' => ini_get('upload_max_filesize'),
+                'max_post' => ini_get('post_max_size')
+            ]);
+
+            $request->validate([
+                'message' => 'nullable|string|max:1000',
+                'file' => 'nullable|file|max:512000', // 最大500MB
+            ]);
+            
+            $currentUser = Auth::user();
+            if (!$currentUser) {
+                \Log::error('User not authenticated');
+                return response()->json(['error' => '用户未登录'], 401);
             }
-        } else {
-            if (!$otherUser->isAdmin()) {
-                return response()->json(['error' => '无法与其他客户聊天'], 403);
+
+            $otherUser = User::findOrFail($userId);
+            
+            // 检查权限
+            if ($currentUser->isAdmin()) {
+                if ($otherUser->isAdmin()) {
+                    return response()->json(['error' => '无法与管理员聊天'], 403);
+                }
+            } else {
+                if (!$otherUser->isAdmin()) {
+                    return response()->json(['error' => '无法与其他客户聊天'], 403);
+                }
             }
+            
+            $messageData = [
+                'sender_id' => $currentUser->id,
+                'receiver_id' => $otherUser->id,
+                'message' => $request->message,
+            ];
+            
+            // 处理文件上传
+            if ($request->hasFile('file')) {
+                try {
+                    $file = $request->file('file');
+                    $fileName = time() . '_' . $file->getClientOriginalName();
+                    $filePath = $file->storeAs('chat_files', $fileName, 'public');
+                    
+                    if (!$filePath) {
+                        \Log::error('File storage failed', ['file' => $fileName]);
+                        return response()->json(['error' => '文件存储失败'], 500);
+                    }
+                    
+                    // 确定文件类型
+                    $fileType = 'document';
+                    $mimeType = $file->getMimeType();
+                    if (str_starts_with($mimeType, 'image/')) {
+                        $fileType = 'image';
+                    } elseif (str_starts_with($mimeType, 'video/')) {
+                        $fileType = 'video';
+                    }
+                    
+                    $messageData['file_path'] = $filePath;
+                    $messageData['file_name'] = $file->getClientOriginalName();
+                    $messageData['file_type'] = $fileType;
+                    $messageData['file_size'] = $this->formatFileSize($file->getSize());
+                    
+                    // 同步文件到public目录
+                    $this->syncFileToPublic($filePath);
+                    
+                    \Log::info('File uploaded successfully', ['file_path' => $filePath]);
+                } catch (\Exception $e) {
+                    \Log::error('File upload error', ['error' => $e->getMessage()]);
+                    return response()->json(['error' => '文件上传失败: ' . $e->getMessage()], 500);
+                }
+            }
+            
+            // 创建消息
+            try {
+                $message = ChatMessage::create($messageData);
+                $message->load('sender');
+                
+                \Log::info('Message created successfully', ['message_id' => $message->id]);
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => $message,
+                ]);
+            } catch (\Exception $e) {
+                \Log::error('Message creation error', ['error' => $e->getMessage()]);
+                return response()->json(['error' => '消息创建失败: ' . $e->getMessage()], 500);
+            }
+            
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Validation error', ['errors' => $e->errors()]);
+            return response()->json(['error' => '数据验证失败', 'details' => $e->errors()], 422);
+        } catch (\Exception $e) {
+            \Log::error('Unexpected error in chat send', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return response()->json(['error' => '服务器错误: ' . $e->getMessage()], 500);
         }
-        
-        $messageData = [
-            'sender_id' => $currentUser->id,
-            'receiver_id' => $otherUser->id,
-            'message' => $request->message,
-        ];
-        
-        // 处理文件上传
-        if ($request->hasFile('file')) {
-            $file = $request->file('file');
-            $fileName = time() . '_' . $file->getClientOriginalName();
-            $filePath = $file->storeAs('chat_files', $fileName, 'public');
-            
-            // 确定文件类型
-            $fileType = 'document';
-            $mimeType = $file->getMimeType();
-            if (str_starts_with($mimeType, 'image/')) {
-                $fileType = 'image';
-            } elseif (str_starts_with($mimeType, 'video/')) {
-                $fileType = 'video';
-            }
-            
-            $messageData['file_path'] = $filePath;
-            $messageData['file_name'] = $file->getClientOriginalName();
-            $messageData['file_type'] = $fileType;
-            $messageData['file_size'] = $this->formatFileSize($file->getSize());
-            
-            // 同步文件到public目录
-            $this->syncFileToPublic($filePath);
-        }
-        
-        // 创建消息
-        $message = ChatMessage::create($messageData);
-        $message->load('sender');
-        
-        return response()->json([
-            'success' => true,
-            'message' => $message,
-        ]);
     }
     
     private function formatFileSize($bytes)

@@ -30,6 +30,8 @@ class AdminController extends Controller
         return view('admin.dashboard', compact('products', 'orders', 'stats'));
     }
 
+
+
     public function products(Request $request)
     {
         if (!Auth::user()->isAdmin()) {
